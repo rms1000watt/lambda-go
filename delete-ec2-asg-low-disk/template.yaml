@@ -1,0 +1,12 @@
+AWSTemplateFormatVersion : '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Delete alarms associated with an EC2 instance terminated by an ASG
+
+Resources:
+
+  Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: delete-ec2-asg-low-disk
+      CodeUri: ./main.zip
+      Runtime: go1.x
