@@ -1,0 +1,132 @@
+# wercker.yml for github.com/veritone/lambda-go
+
+box: golang:1.10.0
+no-response-timeout: 30
+command-timeout: 30
+
+build:
+  steps:
+
+    - setup-go-workspace
+    #- wercker/golint
+
+    # Gets go version
+    - script:
+      name: go version
+      code: |
+        go version
+        go env
+
+    # Gets the dependencies for each function
+    - script:
+        name: go get recursive
+        code: |
+          cd $WERCKER_SOURCE_DIR
+          for dir in *; do
+            if [ -d "$dir" ]; then
+              cd "$dir"
+              go get -v
+              echo "$dir deps $(date)"
+              cd $WERCKER_SOURCE_DIR
+            fi
+          done
+          cd $WERCKER_SOURCE_DIR
+
+    # Build the projects
+    - script:
+        name: go build recursive
+        code: |
+          cd $WERCKER_SOURCE_DIR
+          for dir in *; do
+            if [ -f "$dir/main.go" ]; then
+              cd "$dir"
+              GOOS=linux go build -v
+              echo "verifying binary... $(ls -la)"
+              cd $WERCKER_SOURCE_DIR
+            fi
+          done
+          cd $WERCKER_SOURCE_DIR
+
+deploy: 
+  steps:
+    # Install container dependencies
+    - script:
+      name: install deps
+      code: |
+        sudo apt-get update -y
+        sudo apt-get upgrade -y
+        sudo apt-get install -y wget zip unzip
+    
+    # Install aws-cli
+    - script:
+        name: install aws-cli
+        code: |
+          if [ ! -f "$WERCKER_CACHE_DIR/awscli-bundle.zip" ]; then 
+            wget https://s3.amazonaws.com/aws-cli/awscli-bundle.zip
+            mv ./awscli-bundle.zip $WERCKER_CACHE_DIR
+          fi
+          unzip -o $WERCKER_CACHE_DIR/awscli-bundle.zip
+          sudo ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+
+    # Zip the project binaries
+    - script:
+        name: zip recursive
+        code: |
+          cd $WERCKER_SOURCE_DIR
+          for dir in *; do
+            # will build as name of directory
+            if [ -f "$dir/$dir" ]; then
+              cd $dir
+              zip "$dir.zip" $dir
+              echo "$(pwd)"
+              echo "$(ls -la *.zip)" # see zip
+              cd $WERCKER_SOURCE_DIR
+            fi
+          done
+          cd $WERCKER_SOURCE_DIR
+
+    # Send all the lambda functions to S3
+    - script: 
+        name: send zips to s3 bucket
+        code: |
+          cd $WERCKER_SOURCE_DIR
+          for dir in */; do
+            # will build as name of directory
+            if [ -f "$dir/$dir" ]; then
+              cd "$dir"
+              aws s3 cp "$dir.zip" s3://deployment-veritone/lambda/$dir.zip
+              cd $WERCKER_SOURCE_DIR
+            fi
+          done
+          cd $WERCKER_SOURCE_DIR
+
+    # Connects to Terraform via SSH and applies Lambda changes detected from S3
+    # Is this more secure than giving 'wercker' user permissions to Lambda?
+    - script:
+        name: update functions via terraform
+        code: |
+          mkdir -p ~/.ssh/
+          echo -e $TERRAFORM_PRIVATE_KEY > ~/.ssh/terraform_id_rsa
+          chmod ~/.ssh/terraform_id_rsa
+          ssh -i ~/.ssh/terraform_id_rsa -t terraform@0.terraform.aws-$ENVIRONMENT.veritone.com \
+          "cd ~/terraform && git pull"
+          ssh -i ~/.ssh/terraform_id_rsa -t terraform@0.terraform.aws-$ENVIRONMENT.veritone.com \
+          "cd ~/terraform/dev@veritone.com=026972849384/global/lambda && make apply"
+
+    # Update lambda functions
+    # Assumes lambda function name is the same as the source directory/binary name
+    # Assumes 'wercker' AWS user has permissions to modify lambda functions
+    # - script: 
+    #    name: update lambda functions
+    #    code: |
+    #      cd $WERCKER_SOURCE_DIR
+    #      for dir in */; do
+    #        # will build as name of directory
+    #        if [ -f "$dir/$dir" ]; then
+    #          cd $dir
+    #          aws lambda update-function-code --function-name "$dir" \
+    #          --s3-bucket $AWS_S3_LAMBDA_BUCKET \
+    #          --s3-key "$dir.zip"
+    #        fi
+    #      done
+    #      cd $WERCKER_SOURCE_DIR */
