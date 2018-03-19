@@ -110,9 +110,9 @@ deploy:
           echo -e $TERRAFORM_PRIVATE_KEY > ~/.ssh/terraform_id_rsa
           chmod 600 ~/.ssh/terraform_id_rsa
           which ssh 
-          ssh -i ~/.ssh/terraform_id_rsa -tt terraform@0.terraform.aws-$ENVIRONMENT.veritone.com \
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/terraform_id_rsa -tt terraform@0.terraform.aws-$ENVIRONMENT.veritone.com \
           "cd ~/terraform && git pull"
-          ssh -i ~/.ssh/terraform_id_rsa -tt terraform@0.terraform.aws-$ENVIRONMENT.veritone.com \
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/terraform_id_rsa -tt terraform@0.terraform.aws-$ENVIRONMENT.veritone.com \
           "cd ~/terraform/dev@veritone.com=026972849384/global/lambda && make apply"
 
     # Update lambda functions
