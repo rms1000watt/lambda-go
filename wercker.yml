@@ -118,21 +118,3 @@ deploy:
           #"cd ~/terraform && git pull"
           ssh -T -i ~/.ssh/terraform_id_rsa -o StrictHostKeyChecking=no terraform@0.terraform.aws-$ENVIRONMENT.veritone.com -o "SendEnv MAKE_TARGET VERITONE_*" 
           #"echo ssh_session && cd ~/terraform/dev@veritone.com=026972849384/global/lambda && make apply"
-
-    # Update lambda functions
-    # Assumes lambda function name is the same as the source directory/binary name
-    # Assumes 'wercker' AWS user has permissions to modify lambda functions
-    # - script: 
-    #    name: update lambda functions
-    #    code: |
-    #      cd $WERCKER_SOURCE_DIR
-    #      for dir in */; do
-    #        # will build as name of directory
-    #        if [ -f "$dir/$dir" ]; then
-    #          cd $dir
-    #          aws lambda update-function-code --function-name "$dir" \
-    #          --s3-bucket $AWS_S3_LAMBDA_BUCKET \
-    #          --s3-key "$dir.zip"
-    #        fi
-    #      done
-    #      cd $WERCKER_SOURCE_DIR */
