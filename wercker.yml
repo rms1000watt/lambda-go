@@ -115,7 +115,7 @@ deploy:
           #ssh -o StrictHostKeyChecking=no -i ~/.ssh/terraform_id_rsa -tt terraform@0.terraform.aws-$ENVIRONMENT.veritone.com \
           #"cd ~/terraform && git pull"
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/terraform_id_rsa -tt terraform@0.terraform.aws-$ENVIRONMENT.veritone.com \
-          "~/terraform/dev@veritone.com=026972849384/global/lambda/make apply"
+          "echo ssh_session && cd ~/terraform/dev@veritone.com=026972849384/global/lambda && make apply"
 
     # Update lambda functions
     # Assumes lambda function name is the same as the source directory/binary name
