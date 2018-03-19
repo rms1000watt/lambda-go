@@ -107,7 +107,7 @@ deploy:
         code: |
           mkdir -p ~/.ssh/
           echo -e $TERRAFORM_PRIVATE_KEY > ~/.ssh/terraform_id_rsa
-          chmod ~/.ssh/terraform_id_rsa
+          chmod 600 ~/.ssh/terraform_id_rsa
           ssh -i ~/.ssh/terraform_id_rsa -t terraform@0.terraform.aws-$ENVIRONMENT.veritone.com \
           "cd ~/terraform && git pull"
           ssh -i ~/.ssh/terraform_id_rsa -t terraform@0.terraform.aws-$ENVIRONMENT.veritone.com \
