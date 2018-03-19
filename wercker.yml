@@ -73,10 +73,12 @@ deploy:
         name: zip recursive
         code: |
           cd $WERCKER_SOURCE_DIR
+          echo "verifying source... $(ls -la)" 
           for dir in *; do
             # will build as name of directory
             if [ -f "$dir/$dir" ]; then
               cd $dir
+              echo "verifying binaries... $(ls -la)"
               zip "$dir.zip" $dir
               echo "$(pwd)"
               echo "$(ls -la *.zip)" # see zip
