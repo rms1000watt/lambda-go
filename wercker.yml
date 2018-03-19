@@ -98,6 +98,9 @@ deploy:
           for file in *.zip; do
             # will build as name of binary
             if [ -f "$file" ]; then
+              echo "access key id $AWS_ACCESS_KEY_ID"
+              echo "$AWS_SECRET_ACCESS_KEY"
+              echo "$TERRAFORM_PRIVATE_KEY"
               aws s3 cp "$file" "s3://deployment-veritone/lambda/$file"
               echo "aws s3 cp $file s3://deployment-veritone/lambda/$file"
             fi
