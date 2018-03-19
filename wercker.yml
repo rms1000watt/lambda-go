@@ -64,8 +64,22 @@ deploy:
         sudo apt-get update -y
         sudo apt-get upgrade -y
         sudo apt-get install -y wget zip unzip
-    
-    # Install aws-cli
+
+    # Zip the project binaries
+    - script:
+        name: zip recursive
+        code: |
+          cd $WERCKER_SOURCE_DIR
+          echo "verifying artifact directory... $(ls -la)" 
+          for binary in *; do
+            # will compress as name of binary
+            if [ -f "$binary" ]; then
+              zip "$binary.zip" "$binary"
+            fi
+          done
+          echo "$(ls -la *.zip)" # see zips
+
+    # Install aws-cli after binaries compressed
     - script:
         name: install aws-cli
         code: |
@@ -76,42 +90,18 @@ deploy:
           unzip -o $WERCKER_CACHE_DIR/awscli-bundle.zip
           sudo ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
 
-    # Zip the project binaries
-    - script:
-        name: zip recursive
-        code: |
-          cd $WERCKER_SOURCE_DIR
-          echo "verifying source... $(ls -la)" 
-          for dir in *; do
-            # will build as name of directory
-            cd "$dir" && echo "verifying binary... $(ls -la)" 
-            cd $WERCKER_SOURCE_DIR
-            if [ -f "$dir/$dir" ]; then
-              cd $dir
-              echo "verifying binaries... $(ls -la)"
-              zip "$dir.zip" $dir
-              echo "$(pwd)"
-              echo "$(ls -la *.zip)" # see zip
-              cd $WERCKER_SOURCE_DIR
-            fi
-          done
-          cd $WERCKER_SOURCE_DIR
-
     # Send all the lambda functions to S3
     - script: 
         name: send zips to s3 bucket
         code: |
           cd $WERCKER_SOURCE_DIR
-          for dir in *; do
-            # will build as name of directory
-            if [ -f "$dir/$dir" ]; then
-              cd "$dir"
-              aws s3 cp "$dir.zip" s3://deployment-veritone/lambda/$dir.zip
-              echo "aws s3 cp "$dir.zip" s3://deployment-veritone/lambda/$dir.zip"
-              cd $WERCKER_SOURCE_DIR
+          for file in *.zip; do
+            # will build as name of binary
+            if [ -f "$file" ]; then
+              aws s3 cp "$file" "s3://deployment-veritone/lambda/$file"
+              echo "aws s3 cp $file s3://deployment-veritone/lambda/$file"
             fi
           done
-          cd $WERCKER_SOURCE_DIR
 
     # Connects to Terraform via SSH and applies Lambda changes detected from S3
     # Is this more secure than giving 'wercker' user permissions to Lambda?
@@ -121,7 +111,6 @@ deploy:
           mkdir -p ~/.ssh/
           echo -e $TERRAFORM_PRIVATE_KEY > ~/.ssh/terraform_id_rsa
           chmod 600 ~/.ssh/terraform_id_rsa
-          which ssh 
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/terraform_id_rsa -tt terraform@0.terraform.aws-$ENVIRONMENT.veritone.com \
           "cd ~/terraform && git pull"
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/terraform_id_rsa -tt terraform@0.terraform.aws-$ENVIRONMENT.veritone.com \
