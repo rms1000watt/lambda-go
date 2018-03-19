@@ -95,6 +95,7 @@ deploy:
             if [ -f "$dir/$dir" ]; then
               cd "$dir"
               aws s3 cp "$dir.zip" s3://deployment-veritone/lambda/$dir.zip
+              echo "aws s3 cp "$dir.zip" s3://deployment-veritone/lambda/$dir.zip"
               cd $WERCKER_SOURCE_DIR
             fi
           done
@@ -108,9 +109,10 @@ deploy:
           mkdir -p ~/.ssh/
           echo -e $TERRAFORM_PRIVATE_KEY > ~/.ssh/terraform_id_rsa
           chmod 600 ~/.ssh/terraform_id_rsa
-          ssh -i ~/.ssh/terraform_id_rsa -t terraform@0.terraform.aws-$ENVIRONMENT.veritone.com \
+          which ssh 
+          ssh -i ~/.ssh/terraform_id_rsa -tt terraform@0.terraform.aws-$ENVIRONMENT.veritone.com \
           "cd ~/terraform && git pull"
-          ssh -i ~/.ssh/terraform_id_rsa -t terraform@0.terraform.aws-$ENVIRONMENT.veritone.com \
+          ssh -i ~/.ssh/terraform_id_rsa -tt terraform@0.terraform.aws-$ENVIRONMENT.veritone.com \
           "cd ~/terraform/dev@veritone.com=026972849384/global/lambda && make apply"
 
     # Update lambda functions
