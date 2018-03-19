@@ -76,6 +76,7 @@ deploy:
           echo "verifying source... $(ls -la)" 
           for dir in *; do
             # will build as name of directory
+            echo "verifying binary... $(ls -la)" 
             if [ -f "$dir/$dir" ]; then
               cd $dir
               echo "verifying binaries... $(ls -la)"
