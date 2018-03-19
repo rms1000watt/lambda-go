@@ -6,6 +6,12 @@ command-timeout: 30
 
 build:
   steps:
+    # known issue
+    # http://blog.wercker.com/publishing-go-binaries-with-wercker
+    - script:
+      name: provide chance for deployment
+      code: |
+      export ORG_SOURCE=$WERCKER_SOURCE_DIR
 
     - setup-go-workspace
     #- wercker/golint
@@ -42,6 +48,8 @@ build:
               cd "$dir"
               GOOS=linux go build -v
               echo "verifying binary... $(ls -la)"
+              # move binary because of artifact not grabbed?
+              cp -f "$dir" "$WERCKER_OUTPUT_DIR/$dir"
               cd $WERCKER_SOURCE_DIR
             fi
           done
