@@ -112,10 +112,12 @@ deploy:
           mkdir -p ~/.ssh/
           echo -e $TERRAFORM_PRIVATE_KEY > ~/.ssh/terraform_id_rsa
           chmod 600 ~/.ssh/terraform_id_rsa
+          export MAKE_TARGET=lambda
+          export VERITONE_ENVIRONMENT=global
           #ssh -o StrictHostKeyChecking=no -i ~/.ssh/terraform_id_rsa -tt terraform@0.terraform.aws-$ENVIRONMENT.veritone.com \
           #"cd ~/terraform && git pull"
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/terraform_id_rsa -tt terraform@0.terraform.aws-$ENVIRONMENT.veritone.com \
-          "echo ssh_session && cd ~/terraform/dev@veritone.com=026972849384/global/lambda && make apply"
+          ssh -T -i ~/.ssh/terraform_id_rsa -o StrictHostKeyChecking=no terraform@0.terraform.aws-$ENVIRONMENT.veritone.com -o "SendEnv MAKE_TARGET VERITONE_*" 
+          #"echo ssh_session && cd ~/terraform/dev@veritone.com=026972849384/global/lambda && make apply"
 
     # Update lambda functions
     # Assumes lambda function name is the same as the source directory/binary name
