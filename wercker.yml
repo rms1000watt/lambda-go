@@ -90,7 +90,7 @@ deploy:
         name: send zips to s3 bucket
         code: |
           cd $WERCKER_SOURCE_DIR
-          for dir in */; do
+          for dir in *; do
             # will build as name of directory
             if [ -f "$dir/$dir" ]; then
               cd "$dir"
