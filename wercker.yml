@@ -11,7 +11,7 @@ build:
     - script:
       name: provide chance for deployment
       code: |
-      export ORG_SOURCE=$WERCKER_SOURCE_DIR
+        export ORG_SOURCE=$WERCKER_SOURCE_DIR
 
     - setup-go-workspace
     #- wercker/golint
