@@ -6,7 +6,7 @@ command-timeout: 30
 
 build:
   steps:
-    # known issue
+    # known issue - resolved?
     # http://blog.wercker.com/publishing-go-binaries-with-wercker
     - script:
       name: provide chance for deployment
@@ -48,7 +48,7 @@ build:
               cd "$dir"
               GOOS=linux go build -v
               echo "verifying binary... $(ls -la)"
-              # move binary because of artifact not grabbed?
+              # Move binaries to OUTPUT_DIR to be artifacted
               cp -f "$dir" "$WERCKER_OUTPUT_DIR/$dir"
               cd $WERCKER_SOURCE_DIR
             fi
@@ -113,7 +113,4 @@ deploy:
           chmod 600 ~/.ssh/terraform_id_rsa
           export MAKE_TARGET=lambda
           export VERITONE_ENVIRONMENT=global
-          #ssh -o StrictHostKeyChecking=no -i ~/.ssh/terraform_id_rsa -tt terraform@0.terraform.aws-$ENVIRONMENT.veritone.com \
-          #"cd ~/terraform && git pull"
           ssh -T -i ~/.ssh/terraform_id_rsa -o StrictHostKeyChecking=no terraform@0.terraform.aws-$ENVIRONMENT.veritone.com -o "SendEnv MAKE_TARGET VERITONE_*" 
-          #"echo ssh_session && cd ~/terraform/dev@veritone.com=026972849384/global/lambda && make apply"
