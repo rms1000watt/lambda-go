@@ -47,7 +47,7 @@ func GetInstanceASG(instanceID string, svc *ec2.EC2) (response string, err error
 		response, err := GetInstanceTag(instanceID, tag, svc)
 
 		if response == "" {
-			return "", fmt.Errorf("auto scaling group not associated with this instance")
+			return "", fmt.Errorf("auto scaling group not associated with this instance (" + instanceID + ")")
 		}
 		return response, err
 	}

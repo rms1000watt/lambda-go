@@ -63,7 +63,14 @@ func handleSNSMessage(context context.Context, event events.SNSEvent) (err error
 	}
 
 	if awshelpers.IsInstanceInASG(instanceID, asgName, asgSvc) {
+
+		log.Printf("Instance (%s) is in the AutoScaling Group (%s)", instanceID, asgName)
+
 		if asgInstanceCount > 1 && asgInstanceMinSize > 1 {
+
+			log.Printf("Healthy instances (%d) and AutoScaling Group (%s) Minimum Instance Size (%d)", asgInstanceCount, asgName, asgInstanceMinSize)
+			log.Printf("Attempting to terminate the instance (%s) in the AutoScaling Group (%s)...", instanceID, asgName)
+
 			// Terminate Instance in ASG
 			termInput := &autoscaling.TerminateInstanceInAutoScalingGroupInput{
 				InstanceId:                     aws.String(instanceID),
@@ -77,7 +84,7 @@ func handleSNSMessage(context context.Context, event events.SNSEvent) (err error
 			}
 
 			if termOutput != nil {
-				log.Print("Activity ID for terminating the instance (" + instanceID + ") " + *termOutput.Activity.ActivityId)
+				log.Print("Activity ID for terminating the instance (" + instanceID + "): " + *termOutput.Activity.ActivityId)
 			}
 
 			// Wait for Terminate

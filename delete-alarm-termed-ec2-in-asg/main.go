@@ -59,12 +59,17 @@ func handleEvent(context context.Context, event events.CloudWatchEvent) (err err
 		return
 	}
 
+	// TODO: Use ListMetricsInput with DimensionFilter by InstanceID and iterate
+	// and check if alarm exists for metric instead of iterating through all alarms
+
 	alarmsByInst, err := awshelpers.GetAlarmsByInstanceID(asgDetailMessage.EC2InstanceID, cwSvc)
 	if err != nil {
 		log.Print(err)
 		log.Print("Could not retrieve alarms by instance ID")
 		return
 	}
+
+	counter := 0
 
 	for _, alarms := range alarmsByInst {
 		input := &cloudwatch.DeleteAlarmsInput{
@@ -74,6 +79,12 @@ func handleEvent(context context.Context, event events.CloudWatchEvent) (err err
 		}
 		log.Print("Deleted alarm: " + *alarms.AlarmName)
 		cwSvc.DeleteAlarms(input)
+		counter++
+	}
+
+	if counter < 1 {
+		log.Printf("No alarms associated with the instance (%s) to delete", asgDetailMessage.EC2InstanceID)
+		counter = 0
 	}
 
 	return
