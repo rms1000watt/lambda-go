@@ -110,7 +110,6 @@ deploy:
         code: |
           mkdir -p ~/.ssh/
           echo -e $TERRAFORM_PRIVATE_KEY > ~/.ssh/terraform_id_rsa
-          echo $TERRAFORM_PRIVATE_KEY
           chmod 600 ~/.ssh/terraform_id_rsa
           export MAKE_TARGET=lambda
           export VERITONE_ENVIRONMENT=global
